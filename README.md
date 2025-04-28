@@ -6,6 +6,7 @@ My very simple fork of st, comes with no guarantees or warranties <sub>(to be cl
 * Xresources w/ reload signal (pywal takes priority)
 * ligatures
 * scrollback ringbuffer, with mouse
+* anysize (ensures compatibility with various gaps setups in tiling WMs)
 
 ## other stuff
 * If you aren't using ```~/.Xresources``` or [pywal](https://github.com/dylanaraps/pywal), default color palette is [Nord](https://www.nordtheme.com/).
