@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Suckless Terminal
+Comment=Simple terminal emulator
+Exec=/usr/local/bin/st
+Terminal=false
+Categories=System;TerminalEmulator;
+Keywords=suckless;st;terminal;term;console;
+Icon=/home/packingdustry/Documents/perso/git_repositories/st/st.svg
+StartupNotify=true
+StartupWMClass=st-256color
