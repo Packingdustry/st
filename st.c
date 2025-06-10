@@ -124,24 +124,24 @@ typedef struct {
 
 /* Internal representation of the screen */
 typedef struct {
-	int row;      /* nb row */
-	int col;      /* nb col */
-	Line *line; /* screen */
-	LineBuffer screen[2]; /* screen and alternate screen */
-	int linelen;  /* allocated line length */
-	int *dirty;   /* dirtyness of lines */
-	TCursor c;    /* cursor */
-	int ocx;      /* old cursor col */
-	int ocy;      /* old cursor row */
-	int top;      /* top    scroll limit */
-	int bot;      /* bottom scroll limit */
-	int mode;     /* terminal mode flags */
-	int esc;      /* escape state flags */
-	char trantbl[4]; /* charset table translation */
-	int charset;  /* current charset */
-	int icharset; /* selected charset for sequence */
+	int row;		/* nb row */
+	int col;		/* nb col */
+	Line *line;		/* screen */
+	LineBuffer screen[2];	/* screen and alternate screen */
+	int linelen;		/* allocated line length */
+	int *dirty;		/* dirtyness of lines */
+	TCursor c;		/* cursor */
+	int ocx;		/* old cursor col */
+	int ocy;		/* old cursor row */
+	int top;		/* top scroll limit */
+	int bot;		/* bottom scroll limit */
+	int mode;		/* terminal mode flags */
+	int esc;		/* escape state flags */
+	char trantbl[4];	/* charset table translation */
+	int charset;		/* current charset */
+	int icharset;		/* selected charset for sequence */
 	int *tabs;
-	Rune lastc;   /* last printed char outside of sequence, 0 if control */
+	Rune lastc;		/* last printed char outside of sequence, 0 if control */
 } Term;
 
 /* CSI Escape sequence structs */
