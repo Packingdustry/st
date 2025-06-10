@@ -126,6 +126,7 @@ typedef struct {
 typedef struct {
 	int row;      /* nb row */
 	int col;      /* nb col */
+	Line *line; /* screen */
 	LineBuffer screen[2]; /* screen and alternate screen */
 	int linelen;  /* allocated line length */
 	int *dirty;   /* dirtyness of lines */
