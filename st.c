@@ -124,23 +124,24 @@ typedef struct {
 
 /* Internal representation of the screen */
 typedef struct {
-	int row;      /* nb row */
-	int col;      /* nb col */
-	LineBuffer screen[2]; /* screen and alternate screen */
-	int linelen;  /* allocated line length */
-	int *dirty;   /* dirtyness of lines */
-	TCursor c;    /* cursor */
-	int ocx;      /* old cursor col */
-	int ocy;      /* old cursor row */
-	int top;      /* top    scroll limit */
-	int bot;      /* bottom scroll limit */
-	int mode;     /* terminal mode flags */
-	int esc;      /* escape state flags */
-	char trantbl[4]; /* charset table translation */
-	int charset;  /* current charset */
-	int icharset; /* selected charset for sequence */
+	int row;		/* nb row */
+	int col;		/* nb col */
+	Line *line;		/* screen */
+	LineBuffer screen[2];	/* screen and alternate screen */
+	int linelen;		/* allocated line length */
+	int *dirty;		/* dirtyness of lines */
+	TCursor c;		/* cursor */
+	int ocx;		/* old cursor col */
+	int ocy;		/* old cursor row */
+	int top;		/* top scroll limit */
+	int bot;		/* bottom scroll limit */
+	int mode;		/* terminal mode flags */
+	int esc;		/* escape state flags */
+	char trantbl[4];	/* charset table translation */
+	int charset;		/* current charset */
+	int icharset;		/* selected charset for sequence */
 	int *tabs;
-	Rune lastc;   /* last printed char outside of sequence, 0 if control */
+	Rune lastc;		/* last printed char outside of sequence, 0 if control */
 } Term;
 
 /* CSI Escape sequence structs */
@@ -650,6 +651,99 @@ getsel(void)
 	}
 	*ptr = 0;
 	return str;
+}
+
+char *
+strstrany(char* s, char** strs)
+{
+	char *match;
+	for (int i = 0; strs[i]; i++) {
+		if ((match = strstr(s, strs[i]))) {
+			return match;
+		}
+	}
+	return NULL;
+}
+
+void
+highlighturls(void)
+{
+	char *match;
+	char *linestr = calloc(sizeof(char), term.col+1); /* assume ascii */
+	for (int i = term.top; i < term.bot; i++) {
+		int url_start = -1;
+		for (int j = 0; j < term.col; j++) {
+			if (term.line[i][j].u < 127) {
+				linestr[j] = term.line[i][j].u;
+			}
+			linestr[term.col] = '\0';
+		}
+		while ((match = strstrany(linestr + url_start + 1, urlprefixes))) {
+			url_start = match - linestr;
+			for (int c = url_start; c < term.col && strchr(urlchars, linestr[c]); c++) {
+				term.line[i][c].mode |= ATTR_URL;
+				tsetdirt(i, c);
+			}
+		}
+	}
+	free(linestr);
+}
+
+void
+unhighlighturls(void)
+{
+	for (int i = term.top; i < term.bot; i++) {
+		for (int j = 0; j < term.col; j++) {
+			Glyph* g = &term.line[i][j];
+			if (g->mode & ATTR_URL) {
+				g->mode &= ~ATTR_URL;
+				tsetdirt(i, j);
+			}
+		}
+	}
+	return;
+}
+
+void
+followurl(int x, int y)
+{
+	char *linestr = calloc(sizeof(char), term.col+1); /* assume ascii */
+	char *match;
+	for (int i = 0; i < term.col; i++) {
+		if (term.line[x][i].u < 127) {
+			linestr[i] = term.line[x][i].u;
+		}
+		linestr[term.col] = '\0';
+	}
+	int url_start = -1;
+	while ((match = strstrany(linestr + url_start + 1, urlprefixes))) {
+		url_start = match - linestr;
+		int url_end = url_start;
+		for (int c = url_start; c < term.col && strchr(urlchars, linestr[c]); c++) {
+			url_end++;
+		}
+		if (url_start <= y && y < url_end) {
+			linestr[url_end] = '\0';
+			break;
+		}
+	}
+	if (url_start == -1) {
+		free(linestr);
+		return;
+	}
+
+	pid_t chpid;
+	if ((chpid = fork()) == 0) {
+		if (fork() == 0){
+			execlp(urlhandler, urlhandler, linestr + url_start, NULL);
+		}
+		exit(1);
+		}
+	if (chpid > 0){
+		waitpid(chpid, NULL, 0);
+	}
+	free(linestr);
+	unhighlighturls();
 }
 
 void
